@@ -8,7 +8,8 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-    --font-sans: 'Boldonse', system-ui, sans-serif;
+    --font-sans: 'Arimo', sans-serif;
+    --font-heading: 'Boldonse', system-ui, sans-serif;
 
     --radius-lg: var(--radius);
     --radius-md: calc(var(--radius) - 2px);
@@ -168,6 +169,28 @@
     }
     body {
         @apply bg-background text-foreground font-sans antialiased;
+        font-weight: 400;
+        font-style: normal;
+        font-optical-sizing: auto;
+    }
+
+    h1,
+    h2,
+    h3 {
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .boldonse-regular {
+        font-family: var(--font-heading);
+        font-weight: 400;
+        font-style: normal;
+    }
+
+    .arimo-regular {
+        font-family: var(--font-sans);
+        font-optical-sizing: auto;
         font-weight: 400;
         font-style: normal;
     }

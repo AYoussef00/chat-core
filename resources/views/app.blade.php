@@ -37,7 +37,7 @@
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link
-            href="https://fonts.googleapis.com/css2?family=Boldonse&family=Luckiest+Guy&family=Poller+One&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;500;600;700&family=Boldonse&display=swap"
             rel="stylesheet"
         >
 
