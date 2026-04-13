@@ -1,9 +1,16 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
-import { CircleHelp, Globe, Plus } from 'lucide-vue-next';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ChevronDown, CircleHelp, Globe, LogOut, Plus } from 'lucide-vue-next';
 import { computed } from 'vue';
 import ChannelEmptyIllustration from '@/components/ChannelEmptyIllustration.vue';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
+import { logout } from '@/routes';
 import { connect } from '@/routes/channels';
 
 const page = usePage();
@@ -13,6 +20,10 @@ const user = computed(() => page.props.auth?.user);
 
 const displayName = computed(() => user.value?.name ?? 'User');
 const initials = computed(() => getInitials(user.value?.name));
+
+const handleLogout = () => {
+    router.flushAll();
+};
 </script>
 
 <template>
@@ -38,19 +49,39 @@ const initials = computed(() => getInitials(user.value?.name));
                     <span class="hidden sm:inline">English</span>
                 </button>
 
-                <div
-                    class="flex max-w-[min(100%,14rem)] items-center gap-2.5 sm:max-w-none"
-                >
-                    <span
-                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-semibold text-white"
-                    >
-                        {{ initials }}
-                    </span>
-                    <span
-                        class="truncate text-sm font-medium text-neutral-800"
-                        >{{ displayName }}</span
-                    >
-                </div>
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <button
+                            type="button"
+                            class="flex max-w-[min(100%,14rem)] items-center gap-2.5 rounded-lg px-1.5 py-1 transition hover:bg-neutral-100 sm:max-w-none"
+                        >
+                            <span
+                                class="flex size-9 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-semibold text-white"
+                            >
+                                {{ initials }}
+                            </span>
+                            <span
+                                class="truncate text-sm font-medium text-neutral-800"
+                                >{{ displayName }}</span
+                            >
+                            <ChevronDown class="size-4 shrink-0 text-neutral-500" />
+                        </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" class="w-44">
+                        <DropdownMenuItem :as-child="true">
+                            <Link
+                                :href="logout()"
+                                @click="handleLogout"
+                                as="button"
+                                class="flex w-full cursor-pointer items-center"
+                                data-test="dashboard-logout-button"
+                            >
+                                <LogOut class="mr-2 size-4" />
+                                Log out
+                            </Link>
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
             </div>
         </header>
 
