@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { ChevronDown, CircleHelp, Globe, LogOut, Plus } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ChannelEmptyIllustration from '@/components/ChannelEmptyIllustration.vue';
 import {
     DropdownMenu,
@@ -17,6 +17,7 @@ const page = usePage();
 
 const appName = computed(() => (page.props.name as string) || 'Manychat');
 const user = computed(() => page.props.auth?.user);
+const activeTab = ref<'accounts' | 'templates' | 'api' | 'reports'>('accounts');
 
 const displayName = computed(() => user.value?.name ?? 'User');
 const initials = computed(() => getInitials(user.value?.name));
@@ -94,16 +95,29 @@ const handleLogout = () => {
                 class="-mb-px flex gap-6 overflow-x-auto pb-0 text-sm sm:gap-10"
             >
                 <li>
-                    <span
-                        class="inline-block border-b-2 border-blue-600 pb-3 font-semibold text-blue-600"
+                    <button
+                        type="button"
+                        class="inline-block border-b-2 pb-3 transition"
+                        :class="
+                            activeTab === 'accounts'
+                                ? 'border-blue-600 font-semibold text-blue-600'
+                                : 'border-transparent font-medium text-neutral-600 hover:text-neutral-900'
+                        "
+                        @click="activeTab = 'accounts'"
                     >
                         Accounts
-                    </span>
+                    </button>
                 </li>
                 <li>
                     <button
                         type="button"
-                        class="inline-block border-b-2 border-transparent pb-3 font-medium text-neutral-600 transition hover:text-neutral-900"
+                        class="inline-block border-b-2 pb-3 transition"
+                        :class="
+                            activeTab === 'templates'
+                                ? 'border-blue-600 font-semibold text-blue-600'
+                                : 'border-transparent font-medium text-neutral-600 hover:text-neutral-900'
+                        "
+                        @click="activeTab = 'templates'"
                     >
                         My Templates
                     </button>
@@ -111,7 +125,13 @@ const handleLogout = () => {
                 <li>
                     <button
                         type="button"
-                        class="inline-block border-b-2 border-transparent pb-3 font-medium text-neutral-600 transition hover:text-neutral-900"
+                        class="inline-block border-b-2 pb-3 transition"
+                        :class="
+                            activeTab === 'api'
+                                ? 'border-blue-600 font-semibold text-blue-600'
+                                : 'border-transparent font-medium text-neutral-600 hover:text-neutral-900'
+                        "
+                        @click="activeTab = 'api'"
                     >
                         API Settings
                     </button>
@@ -119,7 +139,13 @@ const handleLogout = () => {
                 <li>
                     <button
                         type="button"
-                        class="inline-block border-b-2 border-transparent pb-3 font-medium text-neutral-600 transition hover:text-neutral-900"
+                        class="inline-block border-b-2 pb-3 transition"
+                        :class="
+                            activeTab === 'reports'
+                                ? 'border-blue-600 font-semibold text-blue-600'
+                                : 'border-transparent font-medium text-neutral-600 hover:text-neutral-900'
+                        "
+                        @click="activeTab = 'reports'"
                     >
                         Message reports
                     </button>
@@ -132,6 +158,7 @@ const handleLogout = () => {
             class="flex flex-1 flex-col items-center justify-center px-4 py-10 sm:px-8"
         >
             <div
+                v-if="activeTab === 'accounts'"
                 class="w-full max-w-lg rounded-xl border border-neutral-200/90 bg-white px-6 py-12 shadow-sm sm:px-12 sm:py-14"
             >
                 <div class="flex flex-col items-center text-center">
@@ -155,6 +182,76 @@ const handleLogout = () => {
                         Add New Account
                     </Link>
                 </div>
+            </div>
+
+            <div
+                v-else-if="activeTab === 'api'"
+                class="w-full max-w-5xl rounded-xl border border-neutral-200/90 bg-white shadow-sm"
+            >
+                <div class="grid grid-cols-1 md:grid-cols-[120px,1fr]">
+                    <aside
+                        class="border-b border-neutral-100 px-6 py-6 md:border-b-0 md:border-r"
+                    >
+                        <span class="text-sm font-semibold text-emerald-600">API</span>
+                    </aside>
+
+                    <section class="px-6 py-8 sm:px-10">
+                        <h1 class="mb-8 text-3xl font-semibold text-neutral-900 font-sans">
+                            Profile Scoped Public API
+                        </h1>
+
+                        <label
+                            for="api-key"
+                            class="mb-3 block text-sm font-semibold text-neutral-800"
+                        >
+                            Get API Key
+                        </label>
+
+                        <div
+                            class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center"
+                        >
+                            <input
+                                id="api-key"
+                                type="text"
+                                placeholder="Your API Key"
+                                class="h-10 w-full rounded-md border border-neutral-200 px-3 text-sm text-neutral-700 placeholder:text-neutral-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-100 sm:max-w-md"
+                            />
+                            <button
+                                type="button"
+                                class="inline-flex h-10 items-center justify-center rounded-md bg-[#007BFF] px-4 text-sm font-semibold text-white transition hover:bg-[#0066DD]"
+                            >
+                                Generate Your API Key
+                            </button>
+                        </div>
+
+                        <p class="text-sm leading-relaxed text-neutral-500">
+                            Generate an API Key to start using Manychat API.
+                            <br />
+                            Here is the
+                            <a href="#" class="text-blue-600 hover:underline"
+                                >link to Swagger</a
+                            >
+                            where you can try our API.
+                            <br />
+                            Help article is available
+                            <a href="#" class="text-blue-600 hover:underline"
+                                >here</a
+                            >.
+                        </p>
+                    </section>
+                </div>
+            </div>
+
+            <div
+                v-else
+                class="w-full max-w-lg rounded-xl border border-neutral-200/90 bg-white px-6 py-12 text-center shadow-sm sm:px-12 sm:py-14"
+            >
+                <h2 class="mb-2 text-xl font-semibold text-neutral-900 font-sans">
+                    This section is coming soon
+                </h2>
+                <p class="text-sm text-neutral-500">
+                    Select another tab to continue.
+                </p>
             </div>
         </main>
 

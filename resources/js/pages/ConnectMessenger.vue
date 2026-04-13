@@ -31,7 +31,7 @@ const appName = computed(() => (page.props.name as string) || 'Manychat');
                 </div>
 
                 <h1
-                    class="mb-3 max-w-md text-2xl font-bold leading-tight text-neutral-950 sm:text-3xl"
+                    class="mb-3 max-w-md text-2xl font-bold leading-tight text-neutral-950 font-sans sm:text-3xl"
                 >
                     Connect Facebook Page
                 </h1>
@@ -60,7 +60,7 @@ const appName = computed(() => (page.props.name as string) || 'Manychat');
                 class="flex w-full max-w-md flex-col items-center text-center"
             >
                 <h2
-                    class="mb-3 text-xl font-bold leading-snug text-neutral-950 sm:text-2xl"
+                    class="mb-3 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
                 >
                     Sign in with your Facebook Account
                 </h2>
