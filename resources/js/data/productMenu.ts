@@ -29,6 +29,6 @@ export const productMenuItems = [
 export const secondaryNavLinks = [
     { label: 'Solutions', href: '#' },
     { label: 'Agencies', href: '#' },
-    { label: 'Pricing', href: '#' },
+    { label: 'Pricing', href: '/pricing' },
     { label: 'Resources', href: '#' },
 ] as const;

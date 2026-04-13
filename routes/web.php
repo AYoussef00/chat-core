@@ -8,6 +8,9 @@ use Laravel\Fortify\Features;
 Route::inertia('/', 'Welcome', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('home');
+Route::inertia('/pricing', 'Pricing', [
+    'canRegister' => Features::enabled(Features::registration()),
+])->name('pricing');
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
