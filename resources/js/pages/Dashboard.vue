@@ -2,6 +2,7 @@
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
 import { CircleHelp, Globe, LogOut, Plus } from 'lucide-vue-next';
 import { computed, ref } from 'vue';
+import ChannelEmptyIllustration from '@/components/ChannelEmptyIllustration.vue';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { getInitials } from '@/composables/useInitials';
 import { logout } from '@/routes';
+import { connect } from '@/routes/channels';
 
 const page = usePage();
 
@@ -141,7 +143,33 @@ const handleLogout = () => {
             </nav>
 
             <main class="flex flex-1 flex-col py-10">
-                <section v-if="activeTab === 'templates'" class="flex flex-1 flex-col">
+                <section v-if="activeTab === 'accounts'" class="flex flex-1 flex-col">
+                    <div
+                        class="flex flex-1 items-center justify-center rounded-md border border-neutral-200/80 bg-white px-6 py-12"
+                    >
+                        <div class="flex max-w-[460px] flex-col items-center text-center">
+                            <div class="mb-8 w-full max-w-[190px]" aria-hidden="true">
+                                <ChannelEmptyIllustration />
+                            </div>
+
+                            <h1 class="mb-3 text-[46px] font-semibold leading-tight text-neutral-900 font-sans">
+                                You don't have a channel.
+                            </h1>
+                            <p class="mb-7 text-[32px] leading-8 text-neutral-500 font-sans">
+                                To add your account in Manychat, click Add
+                                Account.
+                            </p>
+                            <Link
+                                :href="connect.url()"
+                                class="inline-flex h-10 items-center justify-center rounded-md bg-[#007BFF] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0066DD] font-sans"
+                            >
+                                + Add New Account
+                            </Link>
+                        </div>
+                    </div>
+                </section>
+
+                <section v-else-if="activeTab === 'templates'" class="flex flex-1 flex-col">
                     <div class="mb-5 flex items-center justify-between">
                         <h1 class="text-[41px] font-semibold text-neutral-900 font-sans">
                             My Templates
