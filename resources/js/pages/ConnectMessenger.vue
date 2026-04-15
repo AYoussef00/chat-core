@@ -1,12 +1,47 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, useForm, usePage } from '@inertiajs/vue3';
 import { ChevronLeft } from 'lucide-vue-next';
 import { computed } from 'vue';
 import MessengerConnectIllustration from '@/components/MessengerConnectIllustration.vue';
 import { connect } from '@/routes/channels';
 
+type FacebookPage = {
+    id: string;
+    name: string;
+    category?: string | null;
+    picture?: string | null;
+};
+
+type FacebookAccount = {
+    id: string;
+    name: string;
+    email?: string | null;
+};
+
+const props = withDefaults(
+    defineProps<{
+        facebookAccount?: FacebookAccount | null;
+        facebookPages?: FacebookPage[];
+        selectedFacebookPageId?: string | null;
+    }>(),
+    {
+        facebookAccount: null,
+        facebookPages: () => [],
+        selectedFacebookPageId: null,
+    },
+);
+
 const page = usePage();
 const appName = computed(() => (page.props.name as string) || 'Manychat');
+const hasPages = computed(() => props.facebookPages.length > 0);
+
+const form = useForm({
+    page_id: props.selectedFacebookPageId || props.facebookPages[0]?.id || '',
+});
+
+const selectPage = () => {
+    form.post('/channels/connect/messenger/facebook/page');
+};
 </script>
 
 <template>
@@ -56,27 +91,84 @@ const appName = computed(() => (page.props.name as string) || 'Manychat');
         <main
             class="flex flex-1 flex-col items-center justify-center bg-white px-6 py-12 lg:px-12 lg:py-16"
         >
-            <div
-                class="flex w-full max-w-md flex-col items-center text-center"
-            >
-                <h2
-                    class="mb-3 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
-                >
-                    Sign in with your Facebook Account
-                </h2>
-                <p
-                    class="mb-8 max-w-sm text-sm leading-relaxed text-neutral-500"
-                >
-                    To start building automation in Facebook Messenger, sign in
-                    with your Facebook account.
-                </p>
+            <div class="flex w-full max-w-xl flex-col">
+                <template v-if="!hasPages">
+                    <div class="flex flex-col items-center text-center">
+                        <h2
+                            class="mb-3 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
+                        >
+                            Sign in with your Facebook Account
+                        </h2>
+                        <p
+                            class="mb-8 max-w-sm text-sm leading-relaxed text-neutral-500"
+                        >
+                            To start building automation in Facebook Messenger,
+                            sign in with your Facebook account.
+                        </p>
 
-                <a
-                    href="/channels/connect/messenger/facebook"
-                    class="inline-flex w-full max-w-sm items-center justify-center rounded-full bg-[#0078FF] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0068E6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
-                >
-                    Sign in with Facebook
-                </a>
+                        <a
+                            href="/channels/connect/messenger/facebook"
+                            class="inline-flex w-full max-w-sm items-center justify-center rounded-full bg-[#0078FF] px-6 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0068E6] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"
+                        >
+                            Sign in with Facebook
+                        </a>
+                    </div>
+                </template>
+
+                <template v-else>
+                    <h2
+                        class="mb-2 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
+                    >
+                        Choose a Facebook Page
+                    </h2>
+                    <p class="mb-6 text-sm leading-relaxed text-neutral-500">
+                        Connected as
+                        <span class="font-semibold text-neutral-700">{{
+                            facebookAccount?.name || 'Facebook user'
+                        }}</span
+                        >. Select one page to connect with Messenger.
+                    </p>
+
+                    <div class="space-y-3">
+                        <label
+                            v-for="facebookPage in facebookPages"
+                            :key="facebookPage.id"
+                            class="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 p-3 transition hover:border-blue-300"
+                        >
+                            <input
+                                v-model="form.page_id"
+                                type="radio"
+                                name="facebook_page"
+                                :value="facebookPage.id"
+                                class="size-4 accent-blue-600"
+                            />
+                            <img
+                                v-if="facebookPage.picture"
+                                :src="facebookPage.picture"
+                                :alt="facebookPage.name"
+                                class="size-10 rounded-lg object-cover"
+                            />
+                            <div v-else class="size-10 rounded-lg bg-blue-100" />
+                            <div class="min-w-0">
+                                <p class="truncate text-sm font-semibold text-neutral-900">
+                                    {{ facebookPage.name }}
+                                </p>
+                                <p class="text-xs text-neutral-500">
+                                    {{ facebookPage.category || 'Facebook Page' }}
+                                </p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <button
+                        type="button"
+                        :disabled="form.processing || !form.page_id"
+                        class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#0078FF] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0068E6] disabled:cursor-not-allowed disabled:opacity-60"
+                        @click="selectPage"
+                    >
+                        {{ form.processing ? 'Saving...' : 'Continue with selected page' }}
+                    </button>
+                </template>
             </div>
         </main>
     </div>
