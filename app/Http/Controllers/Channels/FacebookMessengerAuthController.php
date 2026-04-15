@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
+use Laravel\Socialite\Two\AbstractProvider;
 use Laravel\Socialite\Two\InvalidStateException;
 use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirect;
 
@@ -23,7 +24,24 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
-        return Socialite::driver('facebook')->redirect();
+        $redirectUri = (string) config('services.facebook.redirect');
+
+        /** @var AbstractProvider $provider */
+        $provider = Socialite::driver('facebook');
+
+        $response = $provider
+            ->redirectUrl($redirectUri)
+            ->redirect();
+
+        parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $query);
+
+        logger()->info('Facebook OAuth redirect URL generated.', [
+            'configured_redirect_uri' => $redirectUri,
+            'sent_redirect_uri' => $query['redirect_uri'] ?? null,
+            'target_url' => $response->getTargetUrl(),
+        ]);
+
+        return $response;
     }
 
     public function callback(Request $request): RedirectResponse
@@ -33,7 +51,18 @@ class FacebookMessengerAuthController extends Controller
         }
 
         try {
-            $facebookUser = Socialite::driver('facebook')->user();
+            $redirectUri = (string) config('services.facebook.redirect');
+            /** @var AbstractProvider $provider */
+            $provider = Socialite::driver('facebook');
+
+            logger()->info('Facebook OAuth callback received.', [
+                'configured_redirect_uri' => $redirectUri,
+                'callback_url' => $request->fullUrl(),
+            ]);
+
+            $facebookUser = $provider
+                ->redirectUrl($redirectUri)
+                ->user();
         } catch (InvalidStateException $e) {
             Inertia::flash('toast', [
                 'type' => 'error',

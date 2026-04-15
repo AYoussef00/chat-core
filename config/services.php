@@ -44,10 +44,10 @@ return [
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' => env(
+        'redirect' => rtrim((string) env(
             'FACEBOOK_REDIRECT_URI',
             rtrim((string) env('APP_URL', 'http://localhost'), '/').'/channels/connect/messenger/facebook/callback'
-        ),
+        ), '/'),
     ],
 
 ];
