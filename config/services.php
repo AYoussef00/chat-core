@@ -44,7 +44,7 @@ return [
     'facebook' => [
         'client_id' => env('FACEBOOK_CLIENT_ID'),
         'client_secret' => env('FACEBOOK_CLIENT_SECRET'),
-        'redirect' => env('FACEBOOK_REDIRECT_URI'),
+        'redirect' => 'https://chat-core.itap-tech.com/channels/connect/messenger/facebook/callback',
         'webhook_verify_token' => env('FACEBOOK_WEBHOOK_VERIFY_TOKEN'),
         'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v19.0'),
     ],

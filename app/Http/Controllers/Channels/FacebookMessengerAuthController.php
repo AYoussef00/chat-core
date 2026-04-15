@@ -31,32 +31,26 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
-        $redirectUri = (string) config('services.facebook.redirect');
-
-        /** @var AbstractProvider $provider */
-        $provider = Socialite::driver('facebook');
-
         $request->session()->forget([
             'messenger.facebook_pages',
             'messenger.selected_facebook_page_id',
             'messenger.selected_facebook_page',
         ]);
 
+        /** @var AbstractProvider $provider */
+        $provider = Socialite::driver('facebook');
+
         $response = $provider
             ->scopes([
                 'public_profile',
                 'email',
-                'pages_show_list',
-                'pages_read_engagement',
-                'pages_manage_metadata',
             ])
-            ->redirectUrl($redirectUri)
             ->redirect();
 
         parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $query);
 
         logger()->info('Facebook OAuth redirect URL generated.', [
-            'configured_redirect_uri' => $redirectUri,
+            'configured_redirect_uri' => config('services.facebook.redirect'),
             'sent_redirect_uri' => $query['redirect_uri'] ?? null,
             'target_url' => $response->getTargetUrl(),
         ]);
@@ -71,18 +65,12 @@ class FacebookMessengerAuthController extends Controller
         }
 
         try {
-            $redirectUri = (string) config('services.facebook.redirect');
-            /** @var AbstractProvider $provider */
-            $provider = Socialite::driver('facebook');
-
             logger()->info('Facebook OAuth callback received.', [
-                'configured_redirect_uri' => $redirectUri,
+                'configured_redirect_uri' => config('services.facebook.redirect'),
                 'callback_url' => $request->fullUrl(),
             ]);
 
-            $facebookUser = $provider
-                ->redirectUrl($redirectUri)
-                ->user();
+            $facebookUser = Socialite::driver('facebook')->user();
         } catch (InvalidStateException $e) {
             Inertia::flash('toast', [
                 'type' => 'error',
@@ -101,42 +89,18 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
-        $userAccessToken = data_get($facebookUser, 'token');
-        if (! is_string($userAccessToken) || $userAccessToken === '') {
-            Inertia::flash('toast', [
-                'type' => 'error',
-                'message' => 'Could not read Facebook access token. Please sign in again.',
-            ]);
-
-            return redirect()->route('channels.connect.messenger');
-        }
-
-        try {
-            $pages = $this->facebookService->getPagesForUserToken($userAccessToken);
-        } catch (RequestException $e) {
-            report($e);
-
-            Inertia::flash('toast', [
-                'type' => 'error',
-                'message' => 'Facebook login succeeded, but we could not fetch your pages. Confirm pages permissions and try again.',
-            ]);
-
-            return redirect()->route('channels.connect.messenger');
-        }
-
         $request->session()->put('messenger.facebook_account', [
             'id' => $facebookUser->getId(),
             'name' => $facebookUser->getName(),
             'email' => $facebookUser->getEmail(),
             'connected_at' => now()->toIso8601String(),
         ]);
-        $request->session()->put('messenger.facebook_pages', $pages);
+        $request->session()->put('messenger.facebook_user_access_token', data_get($facebookUser, 'token'));
+        $request->session()->put('messenger.facebook_pages', []);
 
         Inertia::flash('toast', [
-            'type' => count($pages) > 0 ? 'success' : 'info',
-            'message' => count($pages) > 0
-                ? 'Facebook account connected. Choose the page you want to connect.'
-                : 'Facebook account connected, but no pages were found on this account.',
+            'type' => 'success',
+            'message' => 'Facebook login completed successfully.',
         ]);
 
         return redirect()->route('channels.connect.messenger');
