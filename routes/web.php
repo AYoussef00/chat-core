@@ -3,6 +3,8 @@
 use App\Http\Controllers\Auth\GoogleAuthController;
 use App\Http\Controllers\Channels\FacebookMessengerAuthController;
 use App\Http\Controllers\Channels\MessengerConnectPageController;
+use App\Http\Controllers\Channels\MessengerMessageController;
+use App\Http\Controllers\Channels\MessengerWebhookController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
 
@@ -17,6 +19,8 @@ Route::inertia('/data-deletion-instructions', 'DataDeletionInstructions')
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');
+Route::get('/webhook', [MessengerWebhookController::class, 'verify'])->name('messenger.webhook.verify');
+Route::post('/webhook', [MessengerWebhookController::class, 'handle'])->name('messenger.webhook.handle');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::inertia('dashboard', 'Dashboard')->name('dashboard');
@@ -28,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('channels.connect.messenger.facebook.callback');
     Route::post('channels/connect/messenger/facebook/page', [FacebookMessengerAuthController::class, 'selectPage'])
         ->name('channels.connect.messenger.facebook.page.select');
+    Route::post('channels/connect/messenger/send-message', [MessengerMessageController::class, 'store'])
+        ->name('channels.connect.messenger.send-message');
 });
 
 require __DIR__.'/settings.php';

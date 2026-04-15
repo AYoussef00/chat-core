@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers\Channels;
 
+use App\Models\FacebookPageConnection;
+use App\Services\Facebook\FacebookService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Http;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -15,6 +16,10 @@ use Symfony\Component\HttpFoundation\RedirectResponse as SymfonyRedirect;
 
 class FacebookMessengerAuthController extends Controller
 {
+    public function __construct(
+        private readonly FacebookService $facebookService,
+    ) {}
+
     public function redirect(Request $request): RedirectResponse|SymfonyRedirect
     {
         if (! config('services.facebook.client_id') || ! config('services.facebook.client_secret')) {
@@ -38,7 +43,13 @@ class FacebookMessengerAuthController extends Controller
         ]);
 
         $response = $provider
-            ->scopes(['public_profile', 'email', 'pages_show_list'])
+            ->scopes([
+                'public_profile',
+                'email',
+                'pages_show_list',
+                'pages_read_engagement',
+                'pages_manage_metadata',
+            ])
             ->redirectUrl($redirectUri)
             ->redirect();
 
@@ -90,24 +101,18 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
+        $userAccessToken = data_get($facebookUser, 'token');
+        if (! is_string($userAccessToken) || $userAccessToken === '') {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Could not read Facebook access token. Please sign in again.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
+
         try {
-            $userAccessToken = data_get($facebookUser, 'token');
-            if (! is_string($userAccessToken) || $userAccessToken === '') {
-                Inertia::flash('toast', [
-                    'type' => 'error',
-                    'message' => 'Could not read Facebook access token. Please sign in again.',
-                ]);
-
-                return redirect()->route('channels.connect.messenger');
-            }
-
-            $pagesResponse = Http::acceptJson()
-                ->timeout(15)
-                ->get('https://graph.facebook.com/v22.0/me/accounts', [
-                    'fields' => 'id,name,access_token,category,picture{url}',
-                    'access_token' => $userAccessToken,
-                ])
-                ->throw();
+            $pages = $this->facebookService->getPagesForUserToken($userAccessToken);
         } catch (RequestException $e) {
             report($e);
 
@@ -118,18 +123,6 @@ class FacebookMessengerAuthController extends Controller
 
             return redirect()->route('channels.connect.messenger');
         }
-
-        $pages = collect($pagesResponse->json('data', []))
-            ->map(fn (array $page): array => [
-                'id' => (string) ($page['id'] ?? ''),
-                'name' => (string) ($page['name'] ?? ''),
-                'category' => (string) ($page['category'] ?? ''),
-                'picture' => $page['picture']['data']['url'] ?? null,
-                'page_access_token' => $page['access_token'] ?? null,
-            ])
-            ->filter(fn (array $page): bool => $page['id'] !== '' && $page['name'] !== '')
-            ->values()
-            ->all();
 
         $request->session()->put('messenger.facebook_account', [
             'id' => $facebookUser->getId(),
@@ -168,12 +161,59 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
+        $pageAccessToken = (string) ($selectedPage['access_token'] ?? '');
+        if ($pageAccessToken === '') {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'The selected page does not have a valid access token.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
+
+        try {
+            $this->facebookService->subscribePage($pageId, $pageAccessToken);
+        } catch (RequestException $e) {
+            report($e);
+
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Could not subscribe this page to the app. Please check Facebook app permissions.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
+
+        $user = $request->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
+        $connection = FacebookPageConnection::query()->updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'page_id' => $pageId,
+            ],
+            [
+                'page_name' => (string) ($selectedPage['name'] ?? 'Facebook Page'),
+                'page_access_token' => $pageAccessToken,
+                'status' => 'active',
+                'bot_context' => [
+                    'platform' => 'messenger',
+                    'connected_at' => now()->toIso8601String(),
+                ],
+            ],
+        );
+
         $request->session()->put('messenger.selected_facebook_page_id', $pageId);
-        $request->session()->put('messenger.selected_facebook_page', $selectedPage);
+        $request->session()->put('messenger.selected_facebook_page', [
+            'id' => $connection->page_id,
+            'name' => $connection->page_name,
+        ]);
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => "Page \"{$selectedPage['name']}\" has been selected successfully.",
+            'message' => "Page \"{$connection->page_name}\" connected and subscribed successfully.",
         ]);
 
         return redirect()->route('channels.connect.messenger');

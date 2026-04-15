@@ -8,8 +8,7 @@ import { connect } from '@/routes/channels';
 type FacebookPage = {
     id: string;
     name: string;
-    category?: string | null;
-    picture?: string | null;
+    access_token: string;
 };
 
 type FacebookAccount = {
@@ -23,11 +22,19 @@ const props = withDefaults(
         facebookAccount?: FacebookAccount | null;
         facebookPages?: FacebookPage[];
         selectedFacebookPageId?: string | null;
+        connectedPages?: Array<{
+            id: number;
+            page_id: string;
+            page_name: string;
+            status: string;
+            updated_at: string;
+        }>;
     }>(),
     {
         facebookAccount: null,
         facebookPages: () => [],
         selectedFacebookPageId: null,
+        connectedPages: () => [],
     },
 );
 
@@ -142,20 +149,14 @@ const selectPage = () => {
                                 :value="facebookPage.id"
                                 class="size-4 accent-blue-600"
                             />
-                            <img
-                                v-if="facebookPage.picture"
-                                :src="facebookPage.picture"
-                                :alt="facebookPage.name"
-                                class="size-10 rounded-lg object-cover"
-                            />
-                            <div v-else class="size-10 rounded-lg bg-blue-100" />
+                            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700">
+                                FB
+                            </div>
                             <div class="min-w-0">
                                 <p class="truncate text-sm font-semibold text-neutral-900">
                                     {{ facebookPage.name }}
                                 </p>
-                                <p class="text-xs text-neutral-500">
-                                    {{ facebookPage.category || 'Facebook Page' }}
-                                </p>
+                                <p class="text-xs text-neutral-500">Facebook Page</p>
                             </div>
                         </label>
                     </div>
@@ -168,6 +169,36 @@ const selectPage = () => {
                     >
                         {{ form.processing ? 'Saving...' : 'Continue with selected page' }}
                     </button>
+
+                    <div
+                        v-if="connectedPages.length > 0"
+                        class="mt-8 rounded-xl border border-neutral-200 bg-neutral-50 p-4"
+                    >
+                        <h3 class="mb-2 text-sm font-semibold text-neutral-800">
+                            Connected pages
+                        </h3>
+                        <ul class="space-y-2">
+                            <li
+                                v-for="connectedPage in connectedPages"
+                                :key="connectedPage.id"
+                                class="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm"
+                            >
+                                <span class="font-medium text-neutral-800">
+                                    {{ connectedPage.page_name }}
+                                </span>
+                                <span
+                                    class="rounded-full px-2 py-0.5 text-xs"
+                                    :class="
+                                        connectedPage.status === 'active'
+                                            ? 'bg-emerald-100 text-emerald-700'
+                                            : 'bg-neutral-200 text-neutral-600'
+                                    "
+                                >
+                                    {{ connectedPage.status }}
+                                </span>
+                            </li>
+                        </ul>
+                    </div>
                 </template>
             </div>
         </main>
