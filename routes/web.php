@@ -11,6 +11,8 @@ Route::inertia('/', 'Welcome', [
 Route::inertia('/pricing', 'Pricing', [
     'canRegister' => Features::enabled(Features::registration()),
 ])->name('pricing');
+Route::inertia('/data-deletion-instructions', 'DataDeletionInstructions')
+    ->name('data-deletion.instructions');
 
 Route::get('/auth/google', [GoogleAuthController::class, 'redirect'])->name('auth.google.redirect');
 Route::get('/auth/google/callback', [GoogleAuthController::class, 'callback'])->name('auth.google.callback');

@@ -15,6 +15,8 @@ createInertiaApp({
                 return null;
             case name === 'Pricing':
                 return null;
+            case name === 'DataDeletionInstructions':
+                return null;
             case name === 'Dashboard':
                 return null;
             case name === 'ConnectChannel':
