@@ -30,6 +30,7 @@ class FacebookMessengerAuthController extends Controller
         $provider = Socialite::driver('facebook');
 
         $response = $provider
+            ->scopes(['public_profile', 'email'])
             ->redirectUrl($redirectUri)
             ->redirect();
 
