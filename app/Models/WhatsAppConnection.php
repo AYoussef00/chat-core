@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class WhatsAppConnection extends Model
 {
+    protected $table = 'whatsapp_connections';
+
     protected function casts(): array
     {
         return [
