@@ -33,7 +33,21 @@ class MessengerWebhookController extends Controller
 
     public function handle(Request $request): JsonResponse
     {
+        logger()->info('Messenger webhook request received.', [
+            'headers' => [
+                'x_hub_signature_256' => $request->header('X-Hub-Signature-256'),
+                'content_type' => $request->header('Content-Type'),
+                'user_agent' => $request->header('User-Agent'),
+            ],
+            'payload' => $request->all(),
+        ]);
+
         if (! $this->isValidSignature($request)) {
+            logger()->warning('Messenger webhook signature validation failed.', [
+                'header_signature' => $request->header('X-Hub-Signature-256'),
+                'payload' => $request->all(),
+            ]);
+
             return response()->json(['ok' => false, 'error' => 'invalid_signature'], 403);
         }
 
