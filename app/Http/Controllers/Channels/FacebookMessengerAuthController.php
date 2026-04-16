@@ -98,6 +98,8 @@ class FacebookMessengerAuthController extends Controller
             ]);
 
             $facebookUser = Socialite::driver('facebook')->user();
+
+            logger()->info('Facebook user fetched', (array) $facebookUser);
         } catch (InvalidStateException $e) {
             Inertia::flash('toast', [
                 'type' => 'error',
@@ -106,6 +108,7 @@ class FacebookMessengerAuthController extends Controller
 
             return redirect()->route('channels.connect.messenger');
         } catch (\Throwable $e) {
+            logger()->error('Facebook error: '.$e->getMessage());
             report($e);
 
             Inertia::flash('toast', [
