@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Channels;
 
 use App\Models\FacebookPageConnection;
+use App\Models\WhatsAppConnection;
 use App\Services\Bots\BotSettingsService;
 use App\Services\Facebook\FacebookService;
 use Illuminate\Http\Client\RequestException;
@@ -24,7 +25,12 @@ class MessengerWebhookController extends Controller
         $token = (string) $request->query('hub_verify_token');
         $challenge = (string) $request->query('hub_challenge');
 
-        if ($mode === 'subscribe' && $token !== '' && hash_equals((string) config('services.facebook.webhook_verify_token'), $token)) {
+        $validTokens = array_filter([
+            (string) config('services.facebook.webhook_verify_token'),
+            (string) config('services.whatsapp.webhook_verify_token'),
+        ]);
+
+        if ($mode === 'subscribe' && $token !== '' && collect($validTokens)->contains(fn (string $validToken) => hash_equals($validToken, $token))) {
             return response($challenge, 200);
         }
 
@@ -52,6 +58,12 @@ class MessengerWebhookController extends Controller
         }
 
         $payload = $request->all();
+
+        if (($payload['object'] ?? null) === 'whatsapp_business_account') {
+            $this->handleWhatsAppWebhook($payload);
+
+            return response()->json(['ok' => true]);
+        }
 
         if (($payload['object'] ?? null) !== 'page') {
             return response()->json(['ok' => true]);
@@ -126,6 +138,32 @@ class MessengerWebhookController extends Controller
         }
 
         return response()->json(['ok' => true]);
+    }
+
+    /**
+     * @param array<string, mixed> $payload
+     */
+    private function handleWhatsAppWebhook(array $payload): void
+    {
+        foreach (($payload['entry'] ?? []) as $entry) {
+            foreach ((array) data_get($entry, 'changes', []) as $change) {
+                $phoneNumberId = (string) data_get($change, 'value.metadata.phone_number_id', '');
+                $displayPhoneNumber = (string) data_get($change, 'value.metadata.display_phone_number', '');
+
+                $connection = WhatsAppConnection::query()
+                    ->where('phone_number_id', $phoneNumberId)
+                    ->where('status', 'active')
+                    ->first();
+
+                logger()->info('WhatsApp webhook event received.', [
+                    'phone_number_id' => $phoneNumberId,
+                    'display_phone_number' => $displayPhoneNumber,
+                    'connection_id' => $connection?->id,
+                    'user_id' => $connection?->user_id,
+                    'change' => $change,
+                ]);
+            }
+        }
     }
 
     private function isValidSignature(Request $request): bool

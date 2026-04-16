@@ -38,4 +38,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(FacebookPageConnection::class);
     }
+
+    public function whatsappConnections(): HasMany
+    {
+        return $this->hasMany(WhatsAppConnection::class);
+    }
 }

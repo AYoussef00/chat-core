@@ -91,10 +91,12 @@ const platforms = [
             <ul class="mx-auto flex w-full max-w-xl flex-col gap-4">
                 <li v-for="p in platforms" :key="p.id">
                     <component
-                        :is="p.id === 'messenger' ? Link : 'button'"
+                        :is="p.id === 'messenger' || p.id === 'whatsapp' ? Link : 'button'"
                         v-bind="
                             p.id === 'messenger'
                                 ? { href: connect.messenger.url() }
+                                : p.id === 'whatsapp'
+                                  ? { href: '/channels/connect/whatsapp' }
                                 : { type: 'button' }
                         "
                         class="flex w-full items-start gap-4 rounded-xl border border-neutral-100 bg-white p-5 text-left shadow-md transition hover:border-blue-200 hover:shadow-lg focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500"

@@ -49,4 +49,12 @@ return [
         'graph_version' => env('FACEBOOK_GRAPH_VERSION', 'v19.0'),
     ],
 
+    'whatsapp' => [
+        'app_id' => env('WHATSAPP_APP_ID', env('FACEBOOK_CLIENT_ID')),
+        'app_secret' => env('WHATSAPP_APP_SECRET', env('FACEBOOK_CLIENT_SECRET')),
+        'embedded_signup_config_id' => env('WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID'),
+        'webhook_verify_token' => env('WHATSAPP_WEBHOOK_VERIFY_TOKEN', env('FACEBOOK_WEBHOOK_VERIFY_TOKEN')),
+        'graph_version' => env('WHATSAPP_GRAPH_VERSION', 'v21.0'),
+    ],
+
 ];

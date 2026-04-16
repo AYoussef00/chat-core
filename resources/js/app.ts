@@ -28,6 +28,8 @@ createInertiaApp({
                 return null;
             case name === 'ConnectChannel':
                 return null;
+            case name === 'ConnectWhatsApp':
+                return null;
             case name === 'ConnectMessenger':
                 return null;
             case name === 'OnboardingStrategy':

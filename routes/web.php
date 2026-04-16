@@ -6,6 +6,7 @@ use App\Http\Controllers\Channels\FacebookMessengerAuthController;
 use App\Http\Controllers\Channels\MessengerConnectPageController;
 use App\Http\Controllers\Channels\MessengerMessageController;
 use App\Http\Controllers\Channels\MessengerWebhookController;
+use App\Http\Controllers\Channels\WhatsAppConnectController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Onboarding\OnboardingAccountAboutController;
 use App\Http\Controllers\Onboarding\OnboardingPersonRoleController;
@@ -36,6 +37,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('dashboard/accounts/{facebookPageConnection}/bot-settings', [BotSettingsController::class, 'update'])
         ->name('dashboard.accounts.bot-settings.update');
     Route::inertia('channels/connect', 'ConnectChannel')->name('channels.connect');
+    Route::get('channels/connect/whatsapp', [WhatsAppConnectController::class, 'show'])
+        ->name('channels.connect.whatsapp');
+    Route::post('channels/connect/whatsapp', [WhatsAppConnectController::class, 'store'])
+        ->name('channels.connect.whatsapp.store');
     Route::get('channels/connect/messenger', MessengerConnectPageController::class)->name('channels.connect.messenger');
     Route::get('channels/connect/messenger/facebook', [FacebookMessengerAuthController::class, 'redirect'])
         ->name('channels.connect.messenger.facebook.redirect');
