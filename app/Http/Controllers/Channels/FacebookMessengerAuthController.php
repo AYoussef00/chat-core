@@ -43,7 +43,9 @@ class FacebookMessengerAuthController extends Controller
         $response = $provider
             ->scopes([
                 'public_profile',
-                'email',
+                'pages_show_list',
+                'pages_manage_metadata',
+                'pages_messaging',
             ])
             ->redirect();
 
@@ -51,7 +53,17 @@ class FacebookMessengerAuthController extends Controller
 
         logger()->info('Facebook OAuth redirect URL generated.', [
             'configured_redirect_uri' => config('services.facebook.redirect'),
+            'configured_client_id' => config('services.facebook.client_id'),
+            'configured_graph_version' => config('services.facebook.graph_version'),
+            'configured_scopes' => [
+                'public_profile',
+                'pages_show_list',
+                'pages_manage_metadata',
+                'pages_messaging',
+            ],
             'sent_redirect_uri' => $query['redirect_uri'] ?? null,
+            'sent_client_id' => $query['client_id'] ?? null,
+            'sent_scope' => $query['scope'] ?? null,
             'target_url' => $response->getTargetUrl(),
         ]);
 
@@ -89,18 +101,50 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
+        $userAccessToken = (string) data_get($facebookUser, 'token', '');
+        if ($userAccessToken === '') {
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Facebook did not return a user access token. Please try again.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
+
+        try {
+            $facebookPages = $this->facebookService->getPagesForUserToken($userAccessToken);
+        } catch (RequestException $e) {
+            report($e);
+
+            Inertia::flash('toast', [
+                'type' => 'error',
+                'message' => 'Facebook login worked, but we could not load your pages. Please make sure you granted page access.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
+
         $request->session()->put('messenger.facebook_account', [
             'id' => $facebookUser->getId(),
             'name' => $facebookUser->getName(),
             'email' => $facebookUser->getEmail(),
             'connected_at' => now()->toIso8601String(),
         ]);
-        $request->session()->put('messenger.facebook_user_access_token', data_get($facebookUser, 'token'));
-        $request->session()->put('messenger.facebook_pages', []);
+        $request->session()->put('messenger.facebook_user_access_token', $userAccessToken);
+        $request->session()->put('messenger.facebook_pages', $facebookPages);
+
+        if ($facebookPages === []) {
+            Inertia::flash('toast', [
+                'type' => 'warning',
+                'message' => 'Facebook login completed, but no manageable pages were returned for this account.',
+            ]);
+
+            return redirect()->route('channels.connect.messenger');
+        }
 
         Inertia::flash('toast', [
             'type' => 'success',
-            'message' => 'Facebook login completed successfully.',
+            'message' => 'Facebook login completed successfully. Choose a page to connect.',
         ]);
 
         return redirect()->route('channels.connect.messenger');

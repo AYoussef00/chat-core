@@ -14,10 +14,13 @@ class FacebookService
      */
     public function getPagesForUserToken(string $userAccessToken): array
     {
+        $version = (string) config('services.facebook.graph_version', 'v19.0');
+
         $response = Http::acceptJson()
             ->timeout(20)
-            ->get('https://graph.facebook.com/me/accounts', [
+            ->get("https://graph.facebook.com/{$version}/me/accounts", [
                 'access_token' => $userAccessToken,
+                'fields' => 'id,name,access_token',
             ])
             ->throw()
             ->json();
@@ -38,10 +41,12 @@ class FacebookService
      */
     public function subscribePage(string $pageId, string $pageAccessToken): array
     {
+        $version = (string) config('services.facebook.graph_version', 'v19.0');
+
         return Http::acceptJson()
             ->timeout(20)
             ->asForm()
-            ->post("https://graph.facebook.com/{$pageId}/subscribed_apps", [
+            ->post("https://graph.facebook.com/{$version}/{$pageId}/subscribed_apps", [
                 'access_token' => $pageAccessToken,
                 'subscribed_fields' => 'messages,messaging_postbacks',
             ])
