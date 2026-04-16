@@ -41,6 +41,7 @@ const props = withDefaults(
 const page = usePage();
 const appName = computed(() => (page.props.name as string) || 'Manychat');
 const hasPages = computed(() => props.facebookPages.length > 0);
+const hasConnectedPages = computed(() => props.connectedPages.length > 0);
 
 const form = useForm<{ page_id: string }>({
     page_id: '',
@@ -103,7 +104,42 @@ const connectPage = (pageId: string) => {
         >
             <div class="flex w-full max-w-xl flex-col">
                 <template v-if="!hasPages">
-                    <div class="flex flex-col items-center text-center">
+                    <div v-if="hasConnectedPages" class="flex flex-col">
+                        <h2
+                            class="mb-2 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
+                        >
+                            Connected pages
+                        </h2>
+                        <p class="mb-6 text-sm leading-relaxed text-neutral-500">
+                            Your Messenger channel is already connected. You can manage your connected pages below.
+                        </p>
+
+                        <div class="rounded-xl border border-neutral-200 bg-neutral-50 p-4">
+                            <ul class="space-y-2">
+                                <li
+                                    v-for="connectedPage in connectedPages"
+                                    :key="connectedPage.id"
+                                    class="flex items-center justify-between rounded-lg bg-white px-3 py-2 text-sm"
+                                >
+                                    <span class="font-medium text-neutral-800">
+                                        {{ connectedPage.page_name }}
+                                    </span>
+                                    <span
+                                        class="rounded-full px-2 py-0.5 text-xs"
+                                        :class="
+                                            connectedPage.status === 'active'
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : 'bg-neutral-200 text-neutral-600'
+                                        "
+                                    >
+                                        {{ connectedPage.status }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div v-else class="flex flex-col items-center text-center">
                         <h2
                             class="mb-3 text-xl font-bold leading-snug text-neutral-950 font-sans sm:text-2xl"
                         >
