@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\GoogleAuthController;
+use App\Http\Controllers\BotSettingsController;
 use App\Http\Controllers\Channels\FacebookMessengerAuthController;
 use App\Http\Controllers\Channels\MessengerConnectPageController;
 use App\Http\Controllers\Channels\MessengerMessageController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::delete('dashboard/accounts/{facebookPageConnection}', [DashboardController::class, 'destroy'])
         ->name('dashboard.accounts.destroy');
+    Route::get('dashboard/accounts/{facebookPageConnection}/bot-settings', [BotSettingsController::class, 'show'])
+        ->name('dashboard.accounts.bot-settings.show');
+    Route::put('dashboard/accounts/{facebookPageConnection}/bot-settings', [BotSettingsController::class, 'update'])
+        ->name('dashboard.accounts.bot-settings.update');
     Route::inertia('channels/connect', 'ConnectChannel')->name('channels.connect');
     Route::get('channels/connect/messenger', MessengerConnectPageController::class)->name('channels.connect.messenger');
     Route::get('channels/connect/messenger/facebook', [FacebookMessengerAuthController::class, 'redirect'])

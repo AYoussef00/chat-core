@@ -233,7 +233,7 @@ const disconnectPage = (pageId: number, pageName: string) => {
 
                                         <div class="flex items-center gap-4">
                                             <Link
-                                                href="/channels/connect/messenger"
+                                                :href="`/dashboard/accounts/${connectedPage.id}/bot-settings`"
                                                 class="text-sm font-semibold text-[#007BFF] transition hover:text-[#0066DD]"
                                             >
                                                 Bot Settings

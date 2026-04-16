@@ -24,6 +24,8 @@ createInertiaApp({
                 return null;
             case name === 'Dashboard':
                 return null;
+            case name === 'BotSettings':
+                return null;
             case name === 'ConnectChannel':
                 return null;
             case name === 'ConnectMessenger':
