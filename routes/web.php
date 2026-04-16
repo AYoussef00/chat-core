@@ -6,6 +6,7 @@ use App\Http\Controllers\Channels\MessengerConnectPageController;
 use App\Http\Controllers\Channels\MessengerMessageController;
 use App\Http\Controllers\Channels\MessengerWebhookController;
 use App\Http\Controllers\Onboarding\OnboardingAccountAboutController;
+use App\Http\Controllers\Onboarding\OnboardingPersonRoleController;
 use App\Http\Controllers\Onboarding\OnboardingStrategyController;
 use Illuminate\Support\Facades\Route;
 use Laravel\Fortify\Features;
@@ -46,6 +47,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('onboarding.account.about');
     Route::post('onboarding/account-about', [OnboardingAccountAboutController::class, 'store'])
         ->name('onboarding.account.about.store');
+
+    Route::get('onboarding/person-role', [OnboardingPersonRoleController::class, 'show'])
+        ->name('onboarding.person-role');
+    Route::post('onboarding/person-role', [OnboardingPersonRoleController::class, 'store'])
+        ->name('onboarding.person-role.store');
 });
 
 require __DIR__.'/settings.php';

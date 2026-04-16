@@ -32,6 +32,8 @@ createInertiaApp({
                 return null;
             case name === 'OnboardingAccountAbout':
                 return null;
+            case name === 'OnboardingPersonRole':
+                return null;
             case name === 'auth/Register':
                 return null;
             case name.startsWith('auth/'):

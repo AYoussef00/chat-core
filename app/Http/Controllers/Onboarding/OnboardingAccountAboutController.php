@@ -25,6 +25,10 @@ class OnboardingAccountAboutController extends Controller
 
         $request->session()->put('onboarding.account_about', $validated['account_about']);
 
+        if ($validated['account_about'] === 'person') {
+            return redirect()->route('onboarding.person-role');
+        }
+
         return redirect()->route('dashboard');
     }
 }
