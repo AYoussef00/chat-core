@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -32,11 +33,19 @@ class FacebookMessengerAuthController extends Controller
             return redirect()->route('channels.connect.messenger');
         }
 
-        $request->session()->forget([
+        $isFresh = $request->boolean('fresh');
+
+        $request->session()->forget(array_filter([
             'messenger.facebook_pages',
             'messenger.selected_facebook_page_id',
             'messenger.selected_facebook_page',
-        ]);
+            $isFresh ? 'messenger.facebook_account' : null,
+            $isFresh ? 'messenger.facebook_user_access_token' : null,
+        ]));
+
+        if ($isFresh && $request->user() && Schema::hasColumn('users', 'facebook_user_access_token')) {
+            $request->user()?->forceFill(['facebook_user_access_token' => null])->save();
+        }
 
         /** @var AbstractProvider $provider */
         $provider = Socialite::driver('facebook');
@@ -48,6 +57,11 @@ class FacebookMessengerAuthController extends Controller
                 'pages_manage_metadata',
                 'pages_messaging',
             ])
+            ->with($isFresh ? [
+                // Force Facebook to re-auth (avoid "Reconnect/Continue").
+                'auth_type' => 'reauthenticate',
+                'auth_nonce' => Str::random(16),
+            ] : [])
             ->redirect();
 
         parse_str((string) parse_url($response->getTargetUrl(), PHP_URL_QUERY), $query);

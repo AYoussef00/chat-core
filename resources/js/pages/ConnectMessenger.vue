@@ -158,6 +158,13 @@ const connectPage = (pageId: string) => {
                         >
                             Sign in with Facebook
                         </a>
+
+                        <a
+                            href="/channels/connect/messenger/facebook?fresh=1"
+                            class="mt-3 text-xs font-medium text-neutral-500 transition hover:text-neutral-800"
+                        >
+                            Start from the beginning
+                        </a>
                     </div>
                 </template>
 
