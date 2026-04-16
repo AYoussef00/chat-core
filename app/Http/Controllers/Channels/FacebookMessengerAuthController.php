@@ -131,7 +131,16 @@ class FacebookMessengerAuthController extends Controller
 
         try {
             $facebookPages = $this->facebookService->getPagesForUserToken($userAccessToken);
+
+            logger()->info('Facebook pages fetched', [
+                'count' => count($facebookPages),
+                'pages' => $facebookPages,
+            ]);
         } catch (RequestException $e) {
+            logger()->error('Facebook pages fetch failed', [
+                'message' => $e->getMessage(),
+                'response_body' => $e->response?->body(),
+            ]);
             report($e);
 
             Inertia::flash('toast', [
