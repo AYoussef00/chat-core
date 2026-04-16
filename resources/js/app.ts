@@ -28,6 +28,10 @@ createInertiaApp({
                 return null;
             case name === 'ConnectMessenger':
                 return null;
+            case name === 'OnboardingStrategy':
+                return null;
+            case name === 'OnboardingAccountAbout':
+                return null;
             case name === 'auth/Register':
                 return null;
             case name.startsWith('auth/'):
