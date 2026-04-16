@@ -13,10 +13,26 @@ import { getInitials } from '@/composables/useInitials';
 import { logout } from '@/routes';
 import { connect } from '@/routes/channels';
 
+const props = withDefaults(
+    defineProps<{
+        connectedPages?: Array<{
+            id: number;
+            page_id: string;
+            page_name: string;
+            status: string;
+            updated_at: string;
+        }>;
+    }>(),
+    {
+        connectedPages: () => [],
+    },
+);
+
 const page = usePage();
 
 const user = computed(() => page.props.auth?.user);
 const activeTab = ref<'accounts' | 'templates' | 'api' | 'reports'>('templates');
+const hasConnectedPages = computed(() => props.connectedPages.length > 0);
 
 const displayName = computed(() => user.value?.name ?? 'User');
 const initials = computed(() => getInitials(user.value?.name));
@@ -145,6 +161,71 @@ const handleLogout = () => {
             <main class="flex flex-1 flex-col py-10">
                 <section v-if="activeTab === 'accounts'" class="flex flex-1 flex-col">
                     <div
+                        v-if="hasConnectedPages"
+                        class="flex flex-1 flex-col rounded-md border border-neutral-200/80 bg-white p-6"
+                    >
+                        <div class="mb-6 flex items-center justify-between">
+                            <div>
+                                <h1 class="text-[34px] font-semibold leading-tight text-neutral-900 font-sans">
+                                    Connected Accounts
+                                </h1>
+                                <p class="mt-1 text-base text-neutral-500 font-sans">
+                                    View your connected Facebook pages and their current connection status.
+                                </p>
+                            </div>
+
+                            <Link
+                                :href="connect.url()"
+                                class="inline-flex h-10 items-center justify-center rounded-md bg-[#007BFF] px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0066DD] font-sans"
+                            >
+                                + Add New Account
+                            </Link>
+                        </div>
+
+                        <div class="grid gap-4 md:grid-cols-2">
+                            <div
+                                v-for="connectedPage in connectedPages"
+                                :key="connectedPage.id"
+                                class="rounded-xl border border-neutral-200 bg-neutral-50 p-5"
+                            >
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="min-w-0">
+                                        <p class="truncate text-xl font-semibold text-neutral-900 font-sans">
+                                            {{ connectedPage.page_name }}
+                                        </p>
+                                        <p class="mt-1 text-sm text-neutral-500 font-sans">
+                                            Facebook Page
+                                        </p>
+                                    </div>
+
+                                    <span
+                                        class="rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide"
+                                        :class="
+                                            connectedPage.status === 'active'
+                                                ? 'bg-emerald-100 text-emerald-700'
+                                                : connectedPage.status === 'error'
+                                                  ? 'bg-red-100 text-red-700'
+                                                  : 'bg-neutral-200 text-neutral-700'
+                                        "
+                                    >
+                                        {{ connectedPage.status }}
+                                    </span>
+                                </div>
+
+                                <div class="mt-5 border-t border-neutral-200 pt-4">
+                                    <p class="text-sm text-neutral-500 font-sans">
+                                        Last updated:
+                                        <span class="font-medium text-neutral-700">
+                                            {{ new Date(connectedPage.updated_at).toLocaleString() }}
+                                        </span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div
+                        v-else
                         class="flex flex-1 items-center justify-center rounded-md border border-neutral-200/80 bg-white px-6 py-12"
                     >
                         <div class="flex max-w-[460px] flex-col items-center text-center">

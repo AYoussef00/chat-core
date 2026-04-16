@@ -5,6 +5,7 @@ use App\Http\Controllers\Channels\FacebookMessengerAuthController;
 use App\Http\Controllers\Channels\MessengerConnectPageController;
 use App\Http\Controllers\Channels\MessengerMessageController;
 use App\Http\Controllers\Channels\MessengerWebhookController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Onboarding\OnboardingAccountAboutController;
 use App\Http\Controllers\Onboarding\OnboardingPersonRoleController;
 use App\Http\Controllers\Onboarding\OnboardingStrategyController;
@@ -26,7 +27,7 @@ Route::get('/webhook', [MessengerWebhookController::class, 'verify'])->name('mes
 Route::post('/webhook', [MessengerWebhookController::class, 'handle'])->name('messenger.webhook.handle');
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+    Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::inertia('channels/connect', 'ConnectChannel')->name('channels.connect');
     Route::get('channels/connect/messenger', MessengerConnectPageController::class)->name('channels.connect.messenger');
     Route::get('channels/connect/messenger/facebook', [FacebookMessengerAuthController::class, 'redirect'])
