@@ -224,6 +224,6 @@ class FacebookMessengerAuthController extends Controller
             'message' => "Page \"{$connection->page_name}\" connected and subscribed successfully.",
         ]);
 
-        return redirect()->route('channels.connect.messenger');
+        return redirect()->route('onboarding.strategy');
     }
 }

@@ -42,12 +42,15 @@ const page = usePage();
 const appName = computed(() => (page.props.name as string) || 'Manychat');
 const hasPages = computed(() => props.facebookPages.length > 0);
 
-const form = useForm({
-    page_id: props.selectedFacebookPageId || props.facebookPages[0]?.id || '',
+const form = useForm<{ page_id: string }>({
+    page_id: '',
 });
 
-const selectPage = () => {
-    form.post('/channels/connect/messenger/facebook/page');
+const connectPage = (pageId: string) => {
+    form.page_id = pageId;
+    form.post('/channels/connect/messenger/facebook/page', {
+        preserveScroll: true,
+    });
 };
 </script>
 
@@ -136,39 +139,47 @@ const selectPage = () => {
                         >. Select one page to connect with Messenger.
                     </p>
 
+                    <p class="mb-4 text-xs text-neutral-500">
+                        We found {{ facebookPages.length }} Facebook Page{{
+                            facebookPages.length === 1 ? '' : 's'
+                        }}
+                        managed by you.
+                    </p>
+
                     <div class="space-y-3">
-                        <label
+                        <div
                             v-for="facebookPage in facebookPages"
                             :key="facebookPage.id"
-                            class="flex cursor-pointer items-center gap-3 rounded-xl border border-neutral-200 p-3 transition hover:border-blue-300"
+                            class="flex items-center justify-between gap-4 rounded-xl border border-neutral-200 bg-white p-3"
                         >
-                            <input
-                                v-model="form.page_id"
-                                type="radio"
-                                name="facebook_page"
-                                :value="facebookPage.id"
-                                class="size-4 accent-blue-600"
-                            />
-                            <div class="flex size-10 items-center justify-center rounded-lg bg-blue-100 text-xs font-bold text-blue-700">
-                                FB
+                            <div class="flex min-w-0 items-center gap-3">
+                                <div
+                                    class="flex size-10 shrink-0 items-center justify-center rounded-full bg-orange-100 text-sm font-bold text-orange-700"
+                                >
+                                    {{ (facebookPage.name || 'F').slice(0, 1).toUpperCase() }}
+                                </div>
+                                <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold text-neutral-900">
+                                        {{ facebookPage.name }}
+                                    </p>
+                                    <p class="text-xs text-neutral-500">Facebook Page</p>
+                                </div>
                             </div>
-                            <div class="min-w-0">
-                                <p class="truncate text-sm font-semibold text-neutral-900">
-                                    {{ facebookPage.name }}
-                                </p>
-                                <p class="text-xs text-neutral-500">Facebook Page</p>
-                            </div>
-                        </label>
-                    </div>
 
-                    <button
-                        type="button"
-                        :disabled="form.processing || !form.page_id"
-                        class="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#0078FF] px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-[#0068E6] disabled:cursor-not-allowed disabled:opacity-60"
-                        @click="selectPage"
-                    >
-                        {{ form.processing ? 'Saving...' : 'Continue with selected page' }}
-                    </button>
+                            <button
+                                type="button"
+                                :disabled="form.processing"
+                                class="inline-flex shrink-0 items-center justify-center rounded-md bg-[#0078FF] px-4 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-[#0068E6] disabled:cursor-not-allowed disabled:opacity-60"
+                                @click="connectPage(facebookPage.id)"
+                            >
+                                {{
+                                    form.processing && form.page_id === facebookPage.id
+                                        ? 'Connecting...'
+                                        : 'Connect'
+                                }}
+                            </button>
+                        </div>
+                    </div>
 
                     <div
                         v-if="connectedPages.length > 0"
