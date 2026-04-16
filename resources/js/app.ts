@@ -7,6 +7,11 @@ import { initializeFlashToast } from '@/lib/flashToast';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Facebook sometimes appends "#_=_" to redirect URLs. It's harmless but can look broken.
+if (window.location.hash === '#_=_') {
+    history.replaceState(null, document.title, window.location.pathname + window.location.search);
+}
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     layout: (name) => {
