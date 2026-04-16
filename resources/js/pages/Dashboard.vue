@@ -40,6 +40,16 @@ const initials = computed(() => getInitials(user.value?.name));
 const handleLogout = () => {
     router.flushAll();
 };
+
+const disconnectPage = (pageId: number, pageName: string) => {
+    if (!window.confirm(`Disconnect "${pageName}" from Facebook and remove it from your account?`)) {
+        return;
+    }
+
+    router.delete(`/dashboard/accounts/${pageId}`, {
+        preserveScroll: true,
+    });
+};
 </script>
 
 <template>
@@ -213,12 +223,22 @@ const handleLogout = () => {
                                 </div>
 
                                 <div class="mt-5 border-t border-neutral-200 pt-4">
-                                    <p class="text-sm text-neutral-500 font-sans">
-                                        Last updated:
-                                        <span class="font-medium text-neutral-700">
-                                            {{ new Date(connectedPage.updated_at).toLocaleString() }}
-                                        </span>
-                                    </p>
+                                    <div class="flex items-center justify-between gap-4">
+                                        <p class="text-sm text-neutral-500 font-sans">
+                                            Last updated:
+                                            <span class="font-medium text-neutral-700">
+                                                {{ new Date(connectedPage.updated_at).toLocaleString() }}
+                                            </span>
+                                        </p>
+
+                                        <button
+                                            type="button"
+                                            class="text-sm font-semibold text-red-600 transition hover:text-red-700"
+                                            @click="disconnectPage(connectedPage.id, connectedPage.page_name)"
+                                        >
+                                            Disconnect
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

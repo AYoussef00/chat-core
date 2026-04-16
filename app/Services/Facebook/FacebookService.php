@@ -57,6 +57,23 @@ class FacebookService
     /**
      * @throws RequestException
      */
+    public function unsubscribePage(string $pageId, string $pageAccessToken): array
+    {
+        $version = (string) config('services.facebook.graph_version', 'v19.0');
+
+        return Http::acceptJson()
+            ->timeout(20)
+            ->asForm()
+            ->delete("https://graph.facebook.com/{$version}/{$pageId}/subscribed_apps", [
+                'access_token' => $pageAccessToken,
+            ])
+            ->throw()
+            ->json();
+    }
+
+    /**
+     * @throws RequestException
+     */
     public function sendMessage(string $pageAccessToken, string $recipientId, string $text): array
     {
         $version = (string) config('services.facebook.graph_version', 'v19.0');

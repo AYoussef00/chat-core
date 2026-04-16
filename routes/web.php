@@ -28,6 +28,8 @@ Route::post('/webhook', [MessengerWebhookController::class, 'handle'])->name('me
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
+    Route::delete('dashboard/accounts/{facebookPageConnection}', [DashboardController::class, 'destroy'])
+        ->name('dashboard.accounts.destroy');
     Route::inertia('channels/connect', 'ConnectChannel')->name('channels.connect');
     Route::get('channels/connect/messenger', MessengerConnectPageController::class)->name('channels.connect.messenger');
     Route::get('channels/connect/messenger/facebook', [FacebookMessengerAuthController::class, 'redirect'])
