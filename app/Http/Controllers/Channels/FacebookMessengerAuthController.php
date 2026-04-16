@@ -133,6 +133,13 @@ class FacebookMessengerAuthController extends Controller
         $request->session()->put('messenger.facebook_user_access_token', $userAccessToken);
         $request->session()->put('messenger.facebook_pages', $facebookPages);
 
+        $user = $request->user();
+        if ($user) {
+            $user->forceFill([
+                'facebook_user_access_token' => $userAccessToken,
+            ])->save();
+        }
+
         if ($facebookPages === []) {
             Inertia::flash('toast', [
                 'type' => 'warning',
