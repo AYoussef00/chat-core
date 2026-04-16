@@ -231,13 +231,22 @@ const disconnectPage = (pageId: number, pageName: string) => {
                                             </span>
                                         </p>
 
-                                        <button
-                                            type="button"
-                                            class="text-sm font-semibold text-red-600 transition hover:text-red-700"
-                                            @click="disconnectPage(connectedPage.id, connectedPage.page_name)"
-                                        >
-                                            Disconnect
-                                        </button>
+                                        <div class="flex items-center gap-4">
+                                            <Link
+                                                href="/channels/connect/messenger"
+                                                class="text-sm font-semibold text-[#007BFF] transition hover:text-[#0066DD]"
+                                            >
+                                                Bot Settings
+                                            </Link>
+
+                                            <button
+                                                type="button"
+                                                class="text-sm font-semibold text-red-600 transition hover:text-red-700"
+                                                @click="disconnectPage(connectedPage.id, connectedPage.page_name)"
+                                            >
+                                                Disconnect
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
