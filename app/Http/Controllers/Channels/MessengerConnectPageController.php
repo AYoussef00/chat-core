@@ -7,6 +7,7 @@ use App\Services\Facebook\FacebookService;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -29,9 +30,13 @@ class MessengerConnectPageController extends Controller
                 ->toArray();
 
             $sessionPages = $request->session()->get('messenger.facebook_pages', []);
-            if (($sessionPages === [] || ! is_array($sessionPages)) && (string) ($user->facebook_user_access_token ?? '') !== '') {
+            $storedFacebookAccessToken = Schema::hasColumn('users', 'facebook_user_access_token')
+                ? (string) ($user->facebook_user_access_token ?? '')
+                : '';
+
+            if (($sessionPages === [] || ! is_array($sessionPages)) && $storedFacebookAccessToken !== '') {
                 try {
-                    $facebookPages = $this->facebookService->getPagesForUserToken((string) $user->facebook_user_access_token);
+                    $facebookPages = $this->facebookService->getPagesForUserToken($storedFacebookAccessToken);
                     $request->session()->put('messenger.facebook_pages', $facebookPages);
                 } catch (RequestException $e) {
                     report($e);
@@ -43,7 +48,9 @@ class MessengerConnectPageController extends Controller
                         'messenger.facebook_user_access_token',
                     ]);
 
-                    $user->forceFill(['facebook_user_access_token' => null])->save();
+                    if (Schema::hasColumn('users', 'facebook_user_access_token')) {
+                        $user->forceFill(['facebook_user_access_token' => null])->save();
+                    }
 
                     Inertia::flash('toast', [
                         'type' => 'error',

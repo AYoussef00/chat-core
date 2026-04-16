@@ -8,6 +8,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Schema;
 use Inertia\Inertia;
 use Laravel\Socialite\Facades\Socialite;
 use Laravel\Socialite\Two\AbstractProvider;
@@ -134,7 +135,7 @@ class FacebookMessengerAuthController extends Controller
         $request->session()->put('messenger.facebook_pages', $facebookPages);
 
         $user = $request->user();
-        if ($user) {
+        if ($user && Schema::hasColumn('users', 'facebook_user_access_token')) {
             $user->forceFill([
                 'facebook_user_access_token' => $userAccessToken,
             ])->save();
