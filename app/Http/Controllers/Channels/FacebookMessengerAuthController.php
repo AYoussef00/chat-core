@@ -191,10 +191,20 @@ class FacebookMessengerAuthController extends Controller
         ]);
 
         $pageId = $validated['page_id'];
+        logger()->info('Facebook page selection requested.', [
+            'page_id' => $pageId,
+            'user_id' => $request->user()?->id,
+        ]);
+
         $pages = collect($request->session()->get('messenger.facebook_pages', []));
         $selectedPage = $pages->firstWhere('id', $pageId);
 
         if (! is_array($selectedPage)) {
+            logger()->warning('Facebook page selection failed: page missing from session.', [
+                'page_id' => $pageId,
+                'session_pages_count' => $pages->count(),
+                'user_id' => $request->user()?->id,
+            ]);
             Inertia::flash('toast', [
                 'type' => 'error',
                 'message' => 'Selected page is invalid. Please choose a page from the list.',
@@ -205,6 +215,10 @@ class FacebookMessengerAuthController extends Controller
 
         $pageAccessToken = (string) ($selectedPage['access_token'] ?? '');
         if ($pageAccessToken === '') {
+            logger()->warning('Facebook page selection failed: missing page access token.', [
+                'page_id' => $pageId,
+                'user_id' => $request->user()?->id,
+            ]);
             Inertia::flash('toast', [
                 'type' => 'error',
                 'message' => 'The selected page does not have a valid access token.',
@@ -215,7 +229,19 @@ class FacebookMessengerAuthController extends Controller
 
         try {
             $this->facebookService->subscribePage($pageId, $pageAccessToken);
+            logger()->info('Facebook page subscription succeeded.', [
+                'page_id' => $pageId,
+                'page_name' => (string) ($selectedPage['name'] ?? 'Facebook Page'),
+                'user_id' => $request->user()?->id,
+            ]);
         } catch (RequestException $e) {
+            logger()->error('Facebook page subscription failed.', [
+                'page_id' => $pageId,
+                'page_name' => (string) ($selectedPage['name'] ?? 'Facebook Page'),
+                'user_id' => $request->user()?->id,
+                'message' => $e->getMessage(),
+                'response_body' => $e->response?->body(),
+            ]);
             report($e);
 
             Inertia::flash('toast', [
@@ -251,6 +277,14 @@ class FacebookMessengerAuthController extends Controller
         $request->session()->put('messenger.selected_facebook_page', [
             'id' => $connection->page_id,
             'name' => $connection->page_name,
+        ]);
+
+        logger()->info('Facebook page connection saved.', [
+            'connection_id' => $connection->id,
+            'page_id' => $connection->page_id,
+            'page_name' => $connection->page_name,
+            'status' => $connection->status,
+            'user_id' => $user->id,
         ]);
 
         Inertia::flash('toast', [
