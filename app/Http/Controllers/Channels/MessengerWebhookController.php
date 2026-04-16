@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Channels;
 
 use App\Models\FacebookPageConnection;
+use App\Services\Bots\BotSettingsService;
+use App\Services\Facebook\FacebookService;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
@@ -10,6 +13,11 @@ use Symfony\Component\HttpFoundation\Response;
 
 class MessengerWebhookController extends Controller
 {
+    public function __construct(
+        private readonly FacebookService $facebookService,
+        private readonly BotSettingsService $botSettingsService,
+    ) {}
+
     public function verify(Request $request): Response
     {
         $mode = (string) $request->query('hub_mode');
@@ -54,6 +62,11 @@ class MessengerWebhookController extends Controller
                     continue;
                 }
 
+                $isEcho = (bool) data_get($event, 'message.is_echo', false);
+                if ($isEcho) {
+                    continue;
+                }
+
                 logger()->info('Messenger webhook event received.', [
                     'connection_id' => $connection->id,
                     'user_id' => $connection->user_id,
@@ -62,6 +75,39 @@ class MessengerWebhookController extends Controller
                     'message_text' => $messageText,
                     'event' => $event,
                 ]);
+
+                $settings = $this->botSettingsService->getSettings($connection);
+                if (! $settings['enabled'] || $settings['reply_mode'] === 'manual') {
+                    continue;
+                }
+
+                $replyText = trim((string) ($settings['welcome_message'] ?: $settings['default_reply']));
+                if ($replyText === '') {
+                    continue;
+                }
+
+                $delaySeconds = max(0, (int) ($settings['delay_seconds'] ?? 0));
+                if ($delaySeconds > 0) {
+                    sleep($delaySeconds);
+                }
+
+                try {
+                    $this->facebookService->sendMessage(
+                        (string) $connection->page_access_token,
+                        $senderId,
+                        $replyText,
+                    );
+                } catch (RequestException $e) {
+                    report($e);
+
+                    logger()->error('Messenger bot auto-reply failed.', [
+                        'connection_id' => $connection->id,
+                        'page_id' => $pageId,
+                        'sender_id' => $senderId,
+                        'reply_mode' => $settings['reply_mode'],
+                        'response_body' => $e->response?->body(),
+                    ]);
+                }
             }
         }
 
